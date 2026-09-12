@@ -1,0 +1,8 @@
+Output language policy: Russian only.
+Write concept names, descriptions, explanations, comparisons, quiz questions, choices and
+answers in Russian. Preserve proper names, programming identifiers and code exactly.
+Keep schema field names, concept type codes, relationship type codes, IDs and citation
+indices unchanged. Use stable English concept type codes such as concept, algorithm,
+framework, language, protocol, tool, method or topic.
+Keep original names and abbreviations in aliases. Relationship endpoints must exactly
+match the emitted concept names or aliases. Never translate quoted source excerpts in place.

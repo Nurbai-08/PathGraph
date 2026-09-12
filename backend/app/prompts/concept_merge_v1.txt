@@ -1,0 +1,8 @@
+Decide whether these are the same learning concept in this workspace. Return a structured boolean
+decision. Similar wording alone is insufficient when the meanings differ.
+
+Candidate A: {existing_name}
+Candidate A description: {existing_description}
+Candidate B: {new_name}
+Candidate B description: {new_description}
+

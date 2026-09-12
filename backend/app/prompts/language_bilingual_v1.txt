@@ -1,0 +1,14 @@
+Output language policy: Russian and English, Russian first.
+For an English source, give every concept a bilingual name: Russian term (English term).
+For proper names such as Python or FastAPI keep the original name.
+Include separate Russian and English aliases to support searching and matching either language.
+Every description, explanation, comparison item and quiz question must contain a Russian
+version followed by an English version, separated by a newline and labelled RU: and EN:.
+Multiple-choice choices must each contain both languages in the same string; the answer
+must exactly match one of those strings. Short-answer expected answers should be concise
+terms rather than two translated paragraphs. Preserve code and programming identifiers.
+Keep schema field names, concept type codes, relationship type codes, IDs and citation
+indices unchanged. Use stable English concept type codes such as concept, algorithm,
+framework, language, protocol, tool, method or topic.
+Relationship endpoints must exactly match the emitted concept names or aliases.
+Never translate quoted source excerpts in place: citations always retain the original text.

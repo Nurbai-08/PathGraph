@@ -1,0 +1,3 @@
+Identify only relationships supported by the supplied source text. Use the permitted relation
+types and return structured data. Never add a prerequisite relation unless the source supports it.
+
