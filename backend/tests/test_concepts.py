@@ -109,6 +109,20 @@ def test_extraction_merges_aliases_and_keeps_provenance(client: TestClient) -> N
         assert db.scalar(select(func.count(ConceptSource.id))) == 2
 
 
+def test_extraction_deduplicates_repeated_concept_evidence(client: TestClient) -> None:
+    source_id = source_with_text(client, "# JavaScript\n\nBrowser language.")
+    output = extraction_payload(
+        [concept("JavaScript", ["JS"]), concept("JS")],
+    )
+
+    with SessionLocal() as db:
+        created = ConceptExtractionService(db, ScriptedProvider([output])).run(
+            db.get(Source, UUID(source_id)).id
+        )
+        assert created == 1
+        assert db.scalar(select(func.count(ConceptSource.id))) == 1
+
+
 def test_relationships_are_created_and_cycles_are_rejected(client: TestClient) -> None:
     source_id = source_with_text(client, "# Python and FastAPI\n\nPython is needed for FastAPI.")
     output = extraction_payload(

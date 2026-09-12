@@ -177,6 +177,10 @@ class ConceptExtractionService:
     def _add_evidence(
         self, concept: Concept, source: Source, chunk: Chunk, confidence: float
     ) -> None:
+        # SessionLocal intentionally disables autoflush. Flush pending evidence
+        # before checking so repeated concepts in one AI response cannot create
+        # duplicate (concept, source, chunk) rows.
+        self.db.flush()
         evidence = self.db.scalar(
             select(ConceptSource).where(
                 ConceptSource.concept_id == concept.id,
