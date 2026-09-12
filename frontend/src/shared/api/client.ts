@@ -1,6 +1,15 @@
 import type { ApiResponse } from "../types/api";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+function resolveApiUrl(): string {
+  const configured =
+    import.meta.env.VITE_API_URL ?? (import.meta.env.PROD ? "/api" : "http://localhost:8000");
+  if (import.meta.env.DEV && window.location.hostname === "127.0.0.1") {
+    return configured.replace("localhost", "127.0.0.1");
+  }
+  return configured;
+}
+
+const API_URL = resolveApiUrl();
 
 export class ApiError extends Error {
   readonly code: string;

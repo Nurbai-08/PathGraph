@@ -1,0 +1,20 @@
+[project]
+name = "pathgraph-vercel"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+  "alembic>=1.14,<2",
+  "beautifulsoup4>=4.13,<5",
+  "cryptography>=44,<47",
+  "email-validator>=2.2,<3",
+  "fastapi>=0.115,<1",
+  "firebase-admin>=7,<8",
+  "httpx>=0.28,<1",
+  "psycopg[binary]>=3.2,<4",
+  "pwdlib[argon2]>=0.2,<1",
+  "pydantic-settings>=2.7,<3",
+  "pypdf>=5.2,<7",
+  "PyJWT>=2.10,<3",
+  "python-multipart>=0.0.20,<1",
+  "sqlalchemy>=2.0,<3",
+]

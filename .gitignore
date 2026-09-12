@@ -1,5 +1,8 @@
 .env
 .env.local
+.vercel/
+.agents/
+skills-lock.json
 firebase-service-account.json
 *-firebase-adminsdk-*.json
 firebase-debug.log
@@ -18,3 +21,5 @@ frontend/.npm-cache/
 frontend/*.tsbuildinfo
 frontend/vite.config.js
 frontend/vite.config.d.ts
+.vercel
+.env*

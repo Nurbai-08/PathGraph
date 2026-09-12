@@ -25,7 +25,7 @@ services:
       DEMO_GRAPH_ENABLED: ${DEMO_GRAPH_ENABLED:-false}
       JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES:-10080}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
       SOURCE_STORAGE_DIR: /data/sources
     ports:
       - "8000:8000"

@@ -11,7 +11,12 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60 * 24 * 7
     cookie_secure: bool = False
-    cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
+    cors_origins: list[str] = Field(
+        default_factory=lambda: [
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+        ]
+    )
     source_storage_dir: str = "./source-storage"
     source_max_bytes: int = 10 * 1024 * 1024
     source_fetch_timeout_seconds: float = 10.0
