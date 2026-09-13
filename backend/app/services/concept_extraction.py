@@ -10,13 +10,14 @@ from sqlalchemy.orm import Session, selectinload
 from app.core.config import settings
 from app.core.database import SessionLocal
 from app.core.errors import AppError
-from app.models.ai import AIRun, AISetting
+from app.models.ai import AIRun
 from app.models.concept import Concept, ConceptSource
 from app.models.source import Chunk, Document, Source
 from app.models.workspace import Workspace
 from app.schemas.concept import ConceptExtractionOutput
 from app.services.ai.factory import create_provider
 from app.services.ai.providers import AIProvider
+from app.services.ai.settings import AISettingsService
 from app.services.concept_graph import ConceptGraphService
 from app.services.concept_matcher import ConceptMatcher, normalize_concept_name
 from app.services.content_language import language_instructions
@@ -221,12 +222,13 @@ class ConceptExtractionService:
 
 
 def analyze_source_if_configured(db: Session, source_id: UUID, job_id: UUID) -> int:
-    setting = db.scalar(
-        select(AISetting)
-        .join(Workspace, Workspace.user_id == AISetting.user_id)
-        .join(Source, Source.workspace_id == Workspace.id)
-        .where(Source.id == source_id)
+    source = db.get(Source, source_id)
+    if not source:
+        return 0
+    user_id = db.scalar(
+        select(Workspace.user_id).where(Workspace.id == source.workspace_id)
     )
+    setting = AISettingsService(db, user_id).get() if user_id else None
     if not setting:
         if settings.demo_graph_enabled:
             from app.services.demo_concept_extraction import DemoConceptExtractor
@@ -241,11 +243,10 @@ def analyze_source_task(source_id: UUID, job_id: UUID | None = None) -> None:
         source = db.get(Source, source_id)
         if not source:
             return
-        setting = db.scalar(
-            select(AISetting)
-            .join(Workspace, Workspace.user_id == AISetting.user_id)
-            .where(Workspace.id == source.workspace_id)
+        user_id = db.scalar(
+            select(Workspace.user_id).where(Workspace.id == source.workspace_id)
         )
+        setting = AISettingsService(db, user_id).get() if user_id else None
         if not setting:
             return
         ConceptExtractionService(db, create_provider(setting)).run(source_id, job_id)

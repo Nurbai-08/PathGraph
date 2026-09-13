@@ -3,9 +3,13 @@ from collections.abc import Callable
 import httpx
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
 from app.core.config import settings
+from app.core.database import SessionLocal
 from app.core.errors import AppError
+from app.models.ai import AISetting
+from app.services.concept_extraction import ConceptExtractionService
 from app.services.source_processing import SourceProcessor
 
 
@@ -212,6 +216,30 @@ def test_demo_mode_builds_graph_without_ai_credentials(
     assert graph.status_code == 200
     assert len(graph.json()["data"]["nodes"]) >= 2
     assert len(graph.json()["data"]["edges"]) >= 1
+
+
+def test_deployment_ai_is_provisioned_during_first_source_analysis(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(settings, "gemini_api_key", "deployment-gemini-key")
+    analyzed: list[str] = []
+
+    def record_analysis(_service, source_id, _job_id):
+        analyzed.append(str(source_id))
+        return 1
+
+    monkeypatch.setattr(ConceptExtractionService, "run", record_analysis)
+    workspace_id = register_and_create_workspace(client, "new-account@example.com")
+
+    response = add_text_source(client, workspace_id)
+
+    assert response.status_code == 201
+    assert analyzed == [response.json()["data"]["id"]]
+    with SessionLocal() as db:
+        setting = db.scalar(select(AISetting))
+        assert setting is not None
+        assert setting.provider == "gemini"
+        assert setting.api_key_encrypted is not None
 
 
 def make_text_pdf(text: str) -> bytes:
