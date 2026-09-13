@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 
 import { workspaceApi } from "../../entities/workspace/api";
 import { CreateWorkspaceForm } from "../../features/create-workspace/create-workspace-form";
+import { DeleteWorkspaceButton } from "../../features/delete-workspace/delete-workspace-button";
 import { Card } from "../../shared/ui/card";
 import { ErrorMessage } from "../../shared/ui/status";
 
@@ -39,21 +40,23 @@ export function DashboardPage() {
 
       <div className="mt-10 grid gap-5 md:grid-cols-2">
         {workspaces.data?.map((workspace, index) => (
-          <Link key={workspace.id} to={`/workspace/${workspace.id}`}>
-            <Card className="group h-full overflow-hidden p-6 transition hover:-translate-y-1 hover:border-moss/30">
-              <div className="flex items-start justify-between">
-                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-moss/10 text-moss">
-                  {index % 2 === 0 ? <Code2 size={20} /> : <Boxes size={20} />}
-                </span>
-                <ArrowUpRight className="text-ink/30 transition group-hover:text-moss" size={20} />
-              </div>
+          <Card key={workspace.id} className="group h-full overflow-hidden p-6 transition hover:-translate-y-1 hover:border-moss/30">
+            <div className="flex items-start justify-between">
+              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-moss/10 text-moss">
+                {index % 2 === 0 ? <Code2 size={20} /> : <Boxes size={20} />}
+              </span>
+              <DeleteWorkspaceButton workspaceId={workspace.id} workspaceName={workspace.name} compact />
+            </div>
+            <Link className="block" to={`/workspace/${workspace.id}`}>
               <h2 className="mt-8 text-xl font-semibold">{workspace.name}</h2>
               <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-ink/50">
                 {workspace.description || t("Ready for your first learning source.")}
               </p>
-              <p className="mt-6 text-xs font-semibold uppercase tracking-[0.16em] text-moss"> {t("Open workspace")} </p>
-            </Card>
-          </Link>
+              <p className="mt-6 flex items-center justify-between text-xs font-semibold uppercase tracking-[0.16em] text-moss">
+                {t("Open workspace")} <ArrowUpRight className="text-ink/30 transition group-hover:text-moss" size={20} />
+              </p>
+            </Link>
+          </Card>
         ))}
       </div>
     </div>

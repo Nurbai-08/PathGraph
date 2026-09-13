@@ -2,12 +2,13 @@ import { t, useLocale } from "../../shared/lib/i18n";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, FilePlus2 } from "lucide-react";
 import { useEffect } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { sourceApi } from "../../entities/source/api";
 import { SourceCard } from "../../entities/source/source-card";
 import { workspaceApi } from "../../entities/workspace/api";
 import { AddSourceModal } from "../../features/add-source/add-source-modal";
+import { DeleteWorkspaceButton } from "../../features/delete-workspace/delete-workspace-button";
 import { Card } from "../../shared/ui/card";
 import { ErrorMessage } from "../../shared/ui/status";
 import { LazyKnowledgeGraph } from "../../widgets/knowledge-graph-lazy";
@@ -16,6 +17,7 @@ import { LearningPanel } from "../../widgets/learning-panel";
 export function WorkspacePage() {
   useLocale();
   const { id = "" } = useParams();
+  const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const selectedSource = params.get("source") || undefined;
   const queryClient = useQueryClient();
@@ -57,7 +59,14 @@ export function WorkspacePage() {
           <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">{workspace.data.name}</h1>
           {workspace.data.description && <p className="mt-3 max-w-2xl text-ink/55">{workspace.data.description}</p>}
         </div>
-        <AddSourceModal workspaceId={id} onAdded={(sourceId) => setParams({ source: sourceId })} />
+        <div className="flex flex-wrap gap-3">
+          <AddSourceModal workspaceId={id} onAdded={(sourceId) => setParams({ source: sourceId })} />
+          <DeleteWorkspaceButton
+            workspaceId={id}
+            workspaceName={workspace.data.name}
+            onDeleted={() => navigate("/")}
+          />
+        </div>
       </div>
       {sources.data?.length === 0 && (
         <Card className="mt-10 border-dashed bg-white/60 p-10 text-center sm:p-16">

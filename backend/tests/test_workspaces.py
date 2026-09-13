@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 
 
@@ -38,9 +41,22 @@ def test_workspace_permissions_hide_other_users_data(client: TestClient) -> None
 def test_workspace_deletion(client: TestClient) -> None:
     register(client, "owner@example.com")
     workspace = client.post("/workspaces", json={"name": "Temporary"}).json()["data"]
+    source = client.post(
+        "/sources",
+        data={
+            "workspace_id": workspace["id"],
+            "type": "text",
+            "title": "Temporary notes",
+            "text": "A temporary learning material with enough readable content.",
+        },
+    ).json()["data"]
+    source_file = Path(os.environ["SOURCE_STORAGE_DIR"]) / source["id"]
+    assert source_file.exists()
 
     response = client.delete(f"/workspaces/{workspace['id']}")
 
     assert response.status_code == 200
     assert response.json()["data"] == {"deleted": True}
     assert client.get(f"/workspaces/{workspace['id']}").status_code == 404
+    assert client.get(f"/sources/{source['id']}").status_code == 404
+    assert not source_file.exists()

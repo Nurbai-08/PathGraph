@@ -4,14 +4,19 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.errors import AppError
+from app.models.source import Source
 from app.models.workspace import Workspace
 from app.schemas.workspace import WorkspaceCreate, WorkspaceUpdate
+from app.services.source_storage import SourceStorage
 
 
 class WorkspaceService:
-    def __init__(self, db: Session, user_id: UUID) -> None:
+    def __init__(
+        self, db: Session, user_id: UUID, storage: SourceStorage | None = None
+    ) -> None:
         self.db = db
         self.user_id = user_id
+        self.storage = storage or SourceStorage()
 
     def list(self) -> list[Workspace]:
         query = (
@@ -58,5 +63,10 @@ class WorkspaceService:
 
     def delete(self, workspace_id: UUID) -> None:
         workspace = self.get(workspace_id)
+        source_ids = list(
+            self.db.scalars(select(Source.id).where(Source.workspace_id == workspace_id))
+        )
         self.db.delete(workspace)
         self.db.commit()
+        for source_id in source_ids:
+            self.storage.delete(source_id)
