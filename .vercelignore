@@ -10,4 +10,5 @@ backend/tests
 backend/source-storage
 frontend/dist
 frontend/node_modules
+frontend/.npm-cache
 sample-data
