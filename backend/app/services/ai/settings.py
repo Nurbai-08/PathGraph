@@ -3,6 +3,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.errors import AppError
 from app.models.ai import AISetting
 from app.schemas.ai import AISettingsRead, AISettingsUpdate
@@ -15,7 +16,23 @@ class AISettingsService:
         self.user_id = user_id
 
     def get(self) -> AISetting | None:
-        return self.db.scalar(select(AISetting).where(AISetting.user_id == self.user_id))
+        setting = self.db.scalar(select(AISetting).where(AISetting.user_id == self.user_id))
+        if setting or not settings.gemini_api_key:
+            return setting
+
+        # Provision the deployment-level Gemini key for a new Firebase user once.
+        # It is encrypted before being persisted and is never returned to the client.
+        setting = AISetting(
+            user_id=self.user_id,
+            provider="gemini",
+            model=settings.gemini_model,
+            embedding_model=settings.gemini_embedding_model,
+            api_key_encrypted=CredentialCipher().encrypt(settings.gemini_api_key),
+        )
+        self.db.add(setting)
+        self.db.commit()
+        self.db.refresh(setting)
+        return setting
 
     def require(self) -> AISetting:
         setting = self.get()

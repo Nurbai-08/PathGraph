@@ -6,7 +6,6 @@ import { sourceApi } from "./api";
 import type { JobStage, Source } from "../../shared/types/source";
 import { Button } from "../../shared/ui/button";
 import { Card } from "../../shared/ui/card";
-import { AIRequired } from "../../features/ai-settings/ai-required";
 import { SourceReader } from "../../features/learning/study-concept";
 import { ErrorMessage } from "../../shared/ui/status";
 
@@ -22,7 +21,6 @@ export function SourceCard({ source, onOpenGraph }: { source: Source; onOpenGrap
     queryClient.invalidateQueries({ queryKey: ["learning-paths", source.workspace_id] }),
   ]);
   const retry = useMutation({ mutationFn: () => sourceApi.retry(source.id), onSuccess: refresh });
-  const analyze = useMutation({ mutationFn: () => sourceApi.analyze(source.id), onSuccess: refresh });
   const remove = useMutation({ mutationFn: () => sourceApi.delete(source.id), onSuccess: refresh });
   const Icon = icons[source.type];
 
@@ -55,9 +53,8 @@ export function SourceCard({ source, onOpenGraph }: { source: Source; onOpenGrap
           {onOpenGraph && <Button variant="secondary" className="mt-3 h-9" onClick={onOpenGraph}>{t("Open graph")}</Button>}
           {source.status === "ready" && <div className="mt-3 space-y-3">
             <SourceReader sourceId={source.id} title={source.title} />
-            <AIRequired><Button variant="secondary" disabled={analyze.isPending} onClick={() => analyze.mutate()}>{t(analyze.isPending ? "Analyzing…" : "Analyze with AI")}</Button></AIRequired>
           </div>}
-          {(analyze.error || retry.error || remove.error) && <ErrorMessage message={(analyze.error || retry.error || remove.error)!.message} />}
+          {(retry.error || remove.error) && <ErrorMessage message={(retry.error || remove.error)!.message} />}
           {(source.status === "pending" || source.status === "processing") && (
             <ProcessingStages current={source.job?.stage ?? "fetching"} />
           )}

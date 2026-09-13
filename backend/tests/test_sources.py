@@ -1,5 +1,6 @@
 from collections.abc import Callable
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
@@ -168,6 +169,29 @@ def test_processing_failure_and_source_deletion(
     assert failed["job"]["error_code"] == "PROCESSING_FAILED"
     assert client.delete(f"/sources/{source_id}").status_code == 200
     assert client.get(f"/sources/{source_id}").status_code == 404
+
+
+def test_ai_rate_limit_is_not_reported_as_url_fetch_failure(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    workspace_id = register_and_create_workspace(client)
+    request = httpx.Request("POST", "https://generativelanguage.googleapis.com")
+    response = httpx.Response(429, request=request)
+
+    def rate_limited(*_args):
+        raise httpx.HTTPStatusError("rate limited", request=request, response=response)
+
+    monkeypatch.setattr(
+        "app.services.concept_extraction.analyze_source_if_configured",
+        rate_limited,
+    )
+    created = add_text_source(client, workspace_id)
+    detail = client.get(f"/sources/{created.json()['data']['id']}").json()["data"]
+
+    assert detail["status"] == "failed"
+    assert detail["job"]["stage"] == "analyzing"
+    assert detail["job"]["error_code"] == "AI_RATE_LIMITED"
+    assert "request limit" in detail["job"]["error_message"]
 
 
 def test_demo_mode_builds_graph_without_ai_credentials(

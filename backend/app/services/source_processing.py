@@ -242,6 +242,16 @@ class SourceProcessor:
         if isinstance(error, AppError):
             job.error_code = error.code
             job.error_message = error.message
+        elif (
+            job.stage == "analyzing"
+            and isinstance(error, httpx.HTTPStatusError)
+            and error.response.status_code == 429
+        ):
+            job.error_code = "AI_RATE_LIMITED"
+            job.error_message = "The AI request limit was reached. Please wait and try again."
+        elif job.stage == "analyzing" and isinstance(error, httpx.HTTPError):
+            job.error_code = "AI_ANALYSIS_FAILED"
+            job.error_message = "The AI provider could not analyze this material. Please retry."
         elif isinstance(error, httpx.HTTPError):
             job.error_code = "SOURCE_FETCH_FAILED"
             job.error_message = "The remote source could not be fetched."

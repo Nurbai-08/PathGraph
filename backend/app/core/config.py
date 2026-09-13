@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     source_max_redirects: int = 3
     credential_encryption_key: str | None = None
     ai_timeout_seconds: float = 60.0
+    gemini_api_key: str | None = None
+    gemini_model: str = "gemini-flash-lite-latest"
+    gemini_embedding_model: str = "gemini-embedding-001"
     firebase_project_id: str | None = None
     firebase_credentials_json: str | None = None
     local_auth_enabled: bool = False

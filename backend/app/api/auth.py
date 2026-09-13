@@ -71,7 +71,8 @@ def set_session_cookie(response: Response, token: str) -> None:
 
 def validate_request_origin(request: Request) -> None:
     origin = request.headers.get("origin")
-    if origin and origin not in settings.cors_origins:
+    same_origin = origin == str(request.base_url).rstrip("/") if origin else False
+    if origin and origin not in settings.cors_origins and not same_origin:
         raise AppError(403, "INVALID_ORIGIN", "This request origin is not allowed.")
 
 

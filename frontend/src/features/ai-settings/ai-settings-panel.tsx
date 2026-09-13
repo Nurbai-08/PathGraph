@@ -126,7 +126,7 @@ function AISettingsForm({ initial }: { initial: AISettings | null }) {
           </label>
         </div>
         {saveError && <ErrorMessage message={saveError} />}
-        {save.isSuccess && <p className="text-sm text-moss">{t("Settings saved. Test the connection, then return to the material and run AI analysis.")}</p>}
+        {save.isSuccess && <p className="text-sm text-moss">{t("Settings saved. New materials will be analyzed automatically.")}</p>}
         {health.error && <ErrorMessage message={health.error.message} />}
         {health.data && (
           <p className={`flex items-center gap-2 text-sm font-medium ${health.data.available ? "text-moss" : "text-red-700"}`}>

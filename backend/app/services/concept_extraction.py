@@ -3,6 +3,7 @@ from pathlib import Path
 from time import perf_counter
 from uuid import UUID
 
+import httpx
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session, selectinload
 
@@ -21,7 +22,7 @@ from app.services.concept_matcher import ConceptMatcher, normalize_concept_name
 from app.services.content_language import language_instructions
 
 PROMPT_PATH = Path(__file__).parent.parent / "prompts" / "concept_extraction_v1.txt"
-MAX_ANALYSIS_CHUNKS = 24
+MAX_ANALYSIS_CHUNKS = 8
 MAX_CHUNK_PROMPT_CHARS = 12_000
 
 
@@ -136,6 +137,15 @@ class ConceptExtractionService:
         except Exception as error:
             self.db.rollback()
             self._record_run(job_id, "failed", prompt, "", started, str(error)[:1000])
+            if (
+                isinstance(error, httpx.HTTPStatusError)
+                and error.response.status_code == 429
+            ):
+                raise AppError(
+                    429,
+                    "AI_RATE_LIMITED",
+                    "The AI request limit was reached. Please wait and try again.",
+                ) from error
             return None
 
     def _record_run(
@@ -172,7 +182,15 @@ class ConceptExtractionService:
         )
         if not document:
             return []
-        return sorted(document.chunks, key=lambda chunk: chunk.position)[:MAX_ANALYSIS_CHUNKS]
+        chunks = sorted(document.chunks, key=lambda chunk: chunk.position)
+        if len(chunks) <= MAX_ANALYSIS_CHUNKS:
+            return chunks
+        # Cover the whole document while staying below the free model's request-rate limit.
+        positions = {
+            round(index * (len(chunks) - 1) / (MAX_ANALYSIS_CHUNKS - 1))
+            for index in range(MAX_ANALYSIS_CHUNKS)
+        }
+        return [chunks[position] for position in sorted(positions)]
 
     def _add_evidence(
         self, concept: Concept, source: Source, chunk: Chunk, confidence: float

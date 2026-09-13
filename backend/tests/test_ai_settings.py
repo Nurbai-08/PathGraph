@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
+from app.core.config import settings
 from app.core.database import SessionLocal
 from app.models.ai import AISetting
 from app.services.ai.providers import OllamaProvider
@@ -55,4 +56,20 @@ def test_ollama_health_reports_unavailable(client: TestClient, monkeypatch) -> N
         "available": False,
         "provider": "ollama",
         "model": "gemma3",
+    }
+
+
+def test_deployment_gemini_key_provisions_new_user(client: TestClient, monkeypatch) -> None:
+    register(client)
+    monkeypatch.setattr(settings, "gemini_api_key", "deployment-gemini-key")
+
+    response = client.get("/ai/settings")
+
+    assert response.status_code == 200
+    assert response.json()["data"] == {
+        "provider": "gemini",
+        "base_url": None,
+        "model": "gemini-flash-lite-latest",
+        "embedding_model": "gemini-embedding-001",
+        "has_api_key": True,
     }
