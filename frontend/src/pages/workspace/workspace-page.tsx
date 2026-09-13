@@ -40,11 +40,19 @@ export function WorkspacePage() {
     .map((source) => source.id)
     .sort()
     .join(":");
+  const graphEmptyMessage = getGraphEmptyMessage(sources.data);
 
   useEffect(() => {
     if (readySourceIds === undefined) return;
     void queryClient.invalidateQueries({ queryKey: ["graph", id] });
   }, [id, queryClient, readySourceIds]);
+
+  useEffect(() => {
+    if (!selectedSource || !sources.data) return;
+    if (!sources.data.some((source) => source.id === selectedSource)) {
+      setParams({}, { replace: true });
+    }
+  }, [selectedSource, setParams, sources.data]);
 
   if (workspace.isError) return <ErrorMessage message={t("Workspace could not be found.")} />;
   if (!workspace.data) return <p className="text-sm text-ink/50">{t("Loading workspace…")}</p>;
@@ -96,8 +104,23 @@ export function WorkspacePage() {
             {sources.data?.map((source) => <option key={source.id} value={source.id}>{source.title}</option>)}
           </select>
         </label>
-        <LazyKnowledgeGraph workspaceId={id} sourceId={sources.data?.some((source) => source.id === selectedSource) ? selectedSource : undefined} />
+        <LazyKnowledgeGraph
+          workspaceId={id}
+          sourceId={sources.data?.some((source) => source.id === selectedSource) ? selectedSource : undefined}
+          emptyMessage={graphEmptyMessage}
+        />
       </section>
     </div>
   );
+}
+
+function getGraphEmptyMessage(sources: Awaited<ReturnType<typeof sourceApi.list>> | undefined): string {
+  if (!sources?.length) return "Add a source to build your knowledge graph.";
+  if (sources.some((source) => source.status === "pending" || source.status === "processing")) {
+    return "The material is being analyzed. The graph will appear when processing is complete.";
+  }
+  if (sources.every((source) => source.status === "failed")) {
+    return "The materials could not be analyzed. Review the error above and retry.";
+  }
+  return "No learning concepts were found in these materials. Add a specific lesson or article.";
 }

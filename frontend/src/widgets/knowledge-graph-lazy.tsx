@@ -7,7 +7,15 @@ const Graph = lazy(() =>
   import("./knowledge-graph").then((module) => ({ default: module.KnowledgeGraph })),
 );
 
-export function LazyKnowledgeGraph({ workspaceId, sourceId }: { workspaceId: string; sourceId?: string }) {
+export function LazyKnowledgeGraph({
+  workspaceId,
+  sourceId,
+  emptyMessage,
+}: {
+  workspaceId: string;
+  sourceId?: string;
+  emptyMessage?: string;
+}) {
   useLocale();
   return (
     <Suspense
@@ -17,7 +25,12 @@ export function LazyKnowledgeGraph({ workspaceId, sourceId }: { workspaceId: str
         </Card>
       }
     >
-      <Graph key={`${workspaceId}:${sourceId ?? "all"}`} workspaceId={workspaceId} sourceId={sourceId} />
+      <Graph
+        key={`${workspaceId}:${sourceId ?? "all"}`}
+        workspaceId={workspaceId}
+        sourceId={sourceId}
+        emptyMessage={emptyMessage}
+      />
     </Suspense>
   );
 }

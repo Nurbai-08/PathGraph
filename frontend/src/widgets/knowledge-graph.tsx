@@ -30,7 +30,15 @@ type ConceptNodeData = {
   mastery: number;
 };
 
-export function KnowledgeGraph({ workspaceId, sourceId }: { workspaceId: string; sourceId?: string }) {
+export function KnowledgeGraph({
+  workspaceId,
+  sourceId,
+  emptyMessage = "Concepts will appear after a source is analyzed with your AI provider.",
+}: {
+  workspaceId: string;
+  sourceId?: string;
+  emptyMessage?: string;
+}) {
   useLocale();
   const [focusId, setFocusId] = useState<string>();
   const [selectedId, setSelectedId] = useState<string>();
@@ -63,7 +71,7 @@ export function KnowledgeGraph({ workspaceId, sourceId }: { workspaceId: string;
   if (graph.isLoading) return <GraphPlaceholder message={t("Loading knowledge graph…")} />;
   if (graph.isError) return <GraphPlaceholder message={t("The graph could not be loaded.")} />;
   if (graph.data?.nodes.length === 0) {
-    return <GraphPlaceholder message={t("Concepts will appear after a source is analyzed with your AI provider.")} />;
+    return <GraphPlaceholder message={t(emptyMessage)} />;
   }
 
   function chooseConcept(conceptId: string) {
